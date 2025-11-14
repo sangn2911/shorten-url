@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"shorten-url/internal/adapter/handler"
+	"shorten-url/internal/adapter/repository"
+	"shorten-url/internal/router"
+	"shorten-url/internal/service"
+	"shorten-url/package/database/mysql"
 	"shorten-url/package/httputils"
 	"shorten-url/package/logger"
-	"shorten-url/package/middleware"
-
-	"github.com/gorilla/mux"
 )
 
 type Application struct {
@@ -20,29 +22,37 @@ func NewApplication() *Application {
 	cfg := GetConfig()
 	logger.InitZeroLogger(cfg.LogLevel)
 	logger.Debugf("Config:\n%s", logger.JSONFormat(cfg))
+	handler, stop := setupServerHandler(cfg)
 	server := &http.Server{
-		Handler:      setupServerHandler(cfg),
-		Addr:         fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		Handler: handler,
+		Addr: fmt.Sprintf(
+			"%s:%s",
+			cfg.ServiceConfig.Host,
+			cfg.ServiceConfig.Port,
+		),
 		WriteTimeout: cfg.WriteTimeout,
 		ReadTimeout:  cfg.ReadTimeout,
 	}
 	return &Application{
 		server: server,
-		stop: func() error {
-			return nil
-		},
+		stop:   stop,
 	}
 }
 
-func setupServerHandler(cfg Config) http.Handler {
-	_ = cfg
-	router := mux.NewRouter().StrictSlash(true)
-	router.Use(
-		middleware.LogMiddleware,
-		middleware.RecoverMiddleware,
-	)
-	router.HandleFunc("/health", httputils.CheckHealth).Methods(http.MethodGet)
-	return httputils.GetCORSMiddleWare(cfg.CORSConfig)(router)
+func setupServerHandler(cfg Config) (http.Handler, func() error) {
+	db, err := mysql.NewClient(cfg.MySQLConfig)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	stopFunc := func() error {
+		return db.Close()
+	}
+	repository := repository.NewRepository(db)
+	service := service.NewService(repository)
+	handler := handler.NewHandler(service)
+	router := router.NewRouter(handler)
+	return httputils.GetCORSMiddleWare(cfg.CORSConfig)(router), stopFunc
+
 }
 
 func (a *Application) Start() error {

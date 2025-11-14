@@ -1,6 +1,7 @@
 package app
 
 import (
+	"shorten-url/package/database/mysql"
 	"shorten-url/package/httputils"
 	"shorten-url/package/logger"
 	"time"
@@ -10,7 +11,8 @@ import (
 )
 
 type Config struct {
-	ServiceConfig `json:"ServiceConfig"`
+	ServiceConfig     `json:"ServiceConfig"`
+	mysql.MySQLConfig `json:"MySQLConfig"`
 }
 
 type ServiceConfig struct {

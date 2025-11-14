@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,7 +10,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var _logger wrapper
+var _logger Logger
 
 func init() {
 	InitZeroLogger(zerolog.InfoLevel)
@@ -28,7 +29,7 @@ func InitZeroLogger(level zerolog.Level) {
 			return fmt.Sprintf("%v", i)
 		},
 	}
-	_logger = wrapper{
+	_logger = Logger{
 		Logger: zerolog.New(writer).With().Timestamp().Logger().Level(level),
 	}
 }
@@ -71,6 +72,10 @@ func Warn(args ...any) {
 
 func Warnf(format string, args ...any) {
 	_logger.Warnf(format, args...)
+}
+
+func WithContext(ctx context.Context) *Logger {
+	return _logger.WithContext(ctx)
 }
 
 func JSONFormat(value any) string {

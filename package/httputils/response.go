@@ -20,6 +20,21 @@ func JSON200(ctx context.Context, w http.ResponseWriter, data any) {
 	})
 }
 
+func JSON400(ctx context.Context, w http.ResponseWriter, data any, message string) {
+	writeResponse(w, response{
+		Data:       data,
+		StatusCode: http.StatusBadRequest,
+		Message:    message,
+	})
+}
+
+func JSON500(ctx context.Context, w http.ResponseWriter, message string) {
+	writeResponse(w, response{
+		StatusCode: http.StatusBadRequest,
+		Message:    message,
+	})
+}
+
 func writeResponse(w http.ResponseWriter, res response) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(res.StatusCode)
