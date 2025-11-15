@@ -5,9 +5,9 @@ USE shorten_url;
 
 CREATE TABLE url_encode (
     `shorten_id` VARCHAR(50) NOT NULL UNIQUE,
-    `shorten_code` INT UNSIGNED NOT NULL UNIQUE,
+    `shorten_number` INT UNSIGNED NOT NULL UNIQUE,
     `long_url` VARCHAR(255) NOT NULL,
     PRIMARY KEY (`shorten_id`)
 );
 
--- DROP TABLE url_encode;
+DROP TABLE url_encode;

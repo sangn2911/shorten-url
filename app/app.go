@@ -27,8 +27,8 @@ func NewApplication() *Application {
 		Handler: handler,
 		Addr: fmt.Sprintf(
 			"%s:%s",
-			cfg.ServiceConfig.Host,
-			cfg.ServiceConfig.Port,
+			cfg.ServerConfig.Host,
+			cfg.ServerConfig.Port,
 		),
 		WriteTimeout: cfg.WriteTimeout,
 		ReadTimeout:  cfg.ReadTimeout,
@@ -48,7 +48,7 @@ func setupServerHandler(cfg Config) (http.Handler, func() error) {
 		return db.Close()
 	}
 	repository := repository.NewRepository(db)
-	service := service.NewService(repository)
+	service := service.NewService(repository, cfg.PublicDomain, cfg.MinShortenIdLength)
 	handler := handler.NewHandler(service)
 	router := router.NewRouter(handler)
 	return httputils.GetCORSMiddleWare(cfg.CORSConfig)(router), stopFunc

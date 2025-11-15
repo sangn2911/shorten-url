@@ -1,7 +1,14 @@
 package port
 
-import "context"
+import (
+	"context"
+	"shorten-url/internal/model"
+)
 
 type Repository interface {
-	GetMaxShortenCode(context.Context) (int, error)
+	Begin(context.Context) (context.Context, error)
+	Commit(context.Context) error
+	RollBack(context.Context) error
+	GetLatestUrlEncode(context.Context) (model.UrlEncodeModel, error)
+	InsertUrlEncode(context.Context, model.UrlEncodeModel) error
 }

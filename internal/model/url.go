@@ -1,15 +1,7 @@
 package model
 
-const SHORTEN_URL_MIN_LENGTH = 6
-
-type ConvertUrlRequest struct {
-	Url string `json:"url"`
-}
-
-type DecodeUrlResponse struct {
-	OriginalUrl string `json:"originalUrl"`
-}
-
-type EncodeUrlResponse struct {
-	ShortenUrl string `json:"shortenUrl"`
+type UrlEncodeModel struct {
+	ShortenId     string `json:"shortenId"`     // DB column: shorten_id
+	ShortenNumber int    `json:"shortenNumber"` // DB column: shorten_number
+	LongUrl       string `json:"shortenUrl"`    // DB column: long_url
 }

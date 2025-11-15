@@ -11,17 +11,19 @@ import (
 )
 
 type Config struct {
-	ServiceConfig     `json:"ServiceConfig"`
+	ServerConfig      `json:"ServiceConfig"`
 	mysql.MySQLConfig `json:"MySQLConfig"`
 }
 
-type ServiceConfig struct {
-	Service      string        `env:"SERVICE"`
-	Host         string        `env:"HOST"`
-	Port         string        `env:"PORT" envDefault:"8080"`
-	WriteTimeout time.Duration `env:"WRITE_TIMEOUT" envDefault:"15s"`
-	ReadTimeout  time.Duration `env:"READ_TIMEOUT" envDefault:"15s"`
-	LogLevel     zerolog.Level `env:"LOG_LEVEL" envDefault:"1"`
+type ServerConfig struct {
+	Service            string        `env:"SERVICE"`
+	Host               string        `env:"HOST"`
+	Port               string        `env:"PORT" envDefault:"8080"`
+	WriteTimeout       time.Duration `env:"WRITE_TIMEOUT" envDefault:"15s"`
+	ReadTimeout        time.Duration `env:"READ_TIMEOUT" envDefault:"15s"`
+	LogLevel           zerolog.Level `env:"LOG_LEVEL" envDefault:"1"`
+	PublicDomain       string        `env:"PUBLIC_DOMAIN" envDefault:"localhost:8080"`
+	MinShortenIdLength int           `env:"MIN_SHORTEN_IN_LENGTH" envDefault:"6"`
 	httputils.CORSConfig
 }
 

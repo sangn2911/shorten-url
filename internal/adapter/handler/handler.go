@@ -2,7 +2,7 @@ package handler
 
 import (
 	"net/http"
-	"shorten-url/internal/model"
+	"shorten-url/internal/adapter/handler/dto"
 	"shorten-url/internal/port"
 	"shorten-url/package/httputils"
 	"shorten-url/package/logger"
@@ -20,36 +20,36 @@ func NewHandler(service port.Service) *handler {
 
 func (h *handler) Encode(w http.ResponseWriter, r *http.Request) {
 	logger := logger.WithContext(r.Context())
-	logger.Info("Parse request...")
-	var request model.ConvertUrlRequest
+	logger.Info("Handler.Encode")
+	var request dto.ConvertUrlRequest
 	if err := httputils.DecodeRequest(r, &request); err != nil {
-		httputils.JSON400(r.Context(), w, nil, err.Error())
+		httputils.JSON400(w, r, nil, err.Error())
 		return
 	}
 	shortenUrl, err := h.service.Encode(r.Context(), request.Url)
 	if err != nil {
-		httputils.JSON500(r.Context(), w, err.Error())
+		httputils.JSON500(w, r, err.Error())
 		return
 	}
-	httputils.JSON200(r.Context(), w, model.EncodeUrlResponse{
+	httputils.JSON200(w, r, dto.EncodeUrlResponse{
 		ShortenUrl: shortenUrl,
 	})
 }
 
 func (h *handler) Decode(w http.ResponseWriter, r *http.Request) {
 	logger := logger.WithContext(r.Context())
-	logger.Info("Parse request...")
-	var request model.ConvertUrlRequest
+	logger.Info("Handler.Decode")
+	var request dto.ConvertUrlRequest
 	if err := httputils.DecodeRequest(r, &request); err != nil {
-		httputils.JSON400(r.Context(), w, nil, err.Error())
+		httputils.JSON400(w, r, nil, err.Error())
 		return
 	}
 	originalUrl, err := h.service.Decode(r.Context(), request.Url)
 	if err != nil {
-		httputils.JSON500(r.Context(), w, err.Error())
+		httputils.JSON500(w, r, err.Error())
 		return
 	}
-	httputils.JSON200(r.Context(), w, model.DecodeUrlResponse{
+	httputils.JSON200(w, r, dto.DecodeUrlResponse{
 		OriginalUrl: originalUrl,
 	})
 }
