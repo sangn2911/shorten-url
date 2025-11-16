@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"math"
+	netUrl "net/url"
 	"shorten-url/internal/model"
 	"shorten-url/internal/port"
 	"shorten-url/package/logger"
@@ -28,12 +30,8 @@ func NewService(
 }
 
 func handleEndOfTransaction(ctx context.Context, repository port.Repository, err error) error {
-	if panicErr := recover(); panicErr != nil {
-		repository.RollBack(ctx)
-		panic(panicErr)
-	}
 	if err != nil {
-		repository.RollBack(ctx)
+		return repository.RollBack(ctx)
 	}
 	return repository.Commit(ctx)
 }
@@ -41,29 +39,44 @@ func handleEndOfTransaction(ctx context.Context, repository port.Repository, err
 func (s *service) Encode(ctx context.Context, url string) (shortenUrl string, err error) {
 	logger := logger.WithContext(ctx)
 	logger.Info("Service.Encode")
+	urlEncode, err := s.repository.GetUrlEncodeByLongUrl(ctx, url)
+	if err != nil {
+		return shortenUrl, err
+	}
+	logger.Info("Service.Encode GetUrlEncodeByLongUrl Successfully")
+	if len(urlEncode.ShortenId) > 0 {
+		return fmt.Sprintf(
+			"http://%s/%s",
+			s.publicDomain,
+			urlEncode.ShortenId,
+		), nil
+	}
 	ctx, err = s.repository.Begin(ctx)
 	if err != nil {
 		return shortenUrl, err
 	}
 	defer func() {
-		err = handleEndOfTransaction(ctx, s.repository, err)
+		if errTx := handleEndOfTransaction(ctx, s.repository, err); errTx != nil {
+			err = errTx
+		}
 	}()
 	var latestUrlEncode model.UrlEncodeModel
 	latestUrlEncode, err = s.repository.GetLatestUrlEncode(ctx)
 	if err != nil {
 		return shortenUrl, err
 	}
-	// TODO: check long url exists
 	logger.Info("Service.Encode GetLatestUrlEncode Successfully")
-	nextShortenNumber := latestUrlEncode.ShortenNumber + 1
-	if len(latestUrlEncode.ShortenId) == 0 {
-		nextShortenNumber = 0
+	var nextShortenNumber int
+	currentShortenIdLength := s.minShortenIdLength
+	if len(latestUrlEncode.ShortenId) > 0 {
+		nextShortenNumber = latestUrlEncode.ShortenNumber + 1
+		currentShortenIdLength = len(latestUrlEncode.ShortenId)
 	}
 	newUrlEncode := model.UrlEncodeModel{
 		ShortenNumber: nextShortenNumber,
 		ShortenId: generateShortenIdByShortenNumber(
 			nextShortenNumber,
-			s.minShortenIdLength,
+			currentShortenIdLength,
 		),
 		LongUrl: url,
 	}
@@ -78,15 +91,26 @@ func (s *service) Encode(ctx context.Context, url string) (shortenUrl string, er
 	), nil
 }
 
-func (s *service) Decode(ctx context.Context, url string) (string, error) {
+func (s *service) Decode(ctx context.Context, url string) (longUrl string, err error) {
 	logger := logger.WithContext(ctx)
 	logger.Info("Service.Decode")
-	panic("unimplemented")
+	parsedUrl, err := netUrl.Parse(url)
+	if err != nil {
+		return longUrl, err
+	}
+	urlEncode, err := s.repository.GetUrlEncodeByShortenId(ctx, parsedUrl.Path[1:])
+	if err != nil {
+		return longUrl, err
+	}
+	return urlEncode.LongUrl, nil
 }
 
 func generateShortenIdByShortenNumber(shortenNumber int, length int) string {
 	charSet := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	baseNumber := len(charSet)
+	if shortenNumber == int(math.Pow(float64(baseNumber), float64(length))) {
+		length = length + 1
+	}
 	var builder strings.Builder
 	for range length {
 		builder.WriteByte(charSet[shortenNumber%baseNumber])

@@ -1,0 +1,320 @@
+{
+	"info": {
+		"_postman_id": "c5c82a9b-61d9-431e-a629-4c25218f2c88",
+		"name": "ShortenUrl",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Encode",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const testcase = pm.iterationData.toObject()\r",
+							"if (Object.keys(testcase).length !== 0) {\r",
+							"    pm.test(\"status code matches testcase.statusCode\",\r",
+							"        function () {\r",
+							"            pm.expect(pm.response.code).to.equals(testcase.expectedStatusCode)\r",
+							"        }\r",
+							"    )\r",
+							"\r",
+							"    pm.test(\"shortenUrl has path match testcase.shortenId\",\r",
+							"        function () {\r",
+							"            if (pm.response.code === 200) {\r",
+							"                const path = pm.response.json().shortenUrl.\r",
+							"                    replace(`${pm.collectionVariables.get(\"PUBLIC_DOMAIN\")}/`, \"\")\r",
+							"                pm.expect(path).to.equals(testcase.expectedShortenId)\r",
+							"            }\r",
+							"        }\r",
+							"    )\r",
+							"    const path = pm.response.json().shortenUrl.\r",
+							"        replace(`${pm.collectionVariables.get(\"PUBLIC_DOMAIN\")}/`, \"\")\r",
+							"    pm.collectionVariables.set(\"nextDecodeRequest\", {\r",
+							"        url: `${pm.collectionVariables.get(\"DOMAIN\")}/${path}`\r",
+							"    })\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const testcase = pm.iterationData.toObject();\r",
+							"if (Object.keys(testcase).length !== 0) {\r",
+							"    pm.request.body.raw = JSON.stringify({\r",
+							"        url: testcase.url\r",
+							"    })\r",
+							"    postman.setNextRequest(\"Decode\")\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"url\": \"https://vn-hiring.iwalabs.info/assignment/8d3d17f6c0867fb9528fa893266a2622\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/encode",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"encode"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Encode sample",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"url\": \"https://vn-hiring.iwalabs.info/assignment/8d3d17f6c0867fb9528fa893266a2622\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/encode",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"encode"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 16 Nov 2025 08:13:09 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "46"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"shortenUrl\": \"http://localhost:8080/caaaaa\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Decode",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const testcase = pm.iterationData.toObject()\r",
+							"if (Object.keys(testcase).length !== 0) {\r",
+							"    pm.test(\"status code matches testcase.statusCode\", function () {\r",
+							"        pm.expect(pm.response.code).to.equals(testcase.expectedStatusCode)\r",
+							"    })\r",
+							"\r",
+							"    pm.test(\"originalUrl has path match testcase.expectedUrl\", function () {\r",
+							"        if (pm.response.code === 200) {\r",
+							"            pm.expect(pm.response.json().originalUrl).\r",
+							"                to.equals(testcase.url)\r",
+							"        }\r",
+							"    })\r",
+							"\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const nextDecodeRequest = pm.collectionVariables.get(\"nextDecodeRequest\");\r",
+							"if (nextDecodeRequest) {\r",
+							"    pm.collectionVariables.unset(\"nextDecodeRequest\")\r",
+							"    pm.request.body.raw = JSON.stringify(nextDecodeRequest)\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"url\": \"http://localhost:8080/daaaaa\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{DOMAIN}}/decode",
+					"host": [
+						"{{DOMAIN}}"
+					],
+					"path": [
+						"decode"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Decode registered url",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"url\": \"http://localhost:8080/daaaaa\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DOMAIN}}/decode",
+							"host": [
+								"{{DOMAIN}}"
+							],
+							"path": [
+								"decode"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 16 Nov 2025 08:25:38 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "53"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"originalUrl\": \"https://codesubmit.io/libary/react\"\n}"
+				},
+				{
+					"name": "Decode unregistered url",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"url\": \"http://localhost:8080/daaaae\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DOMAIN}}/decode",
+							"host": [
+								"{{DOMAIN}}"
+							],
+							"path": [
+								"decode"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 16 Nov 2025 08:25:48 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "19"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"originalUrl\": \"\"\n}"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "DOMAIN",
+			"value": "http://localhost:8080",
+			"type": "default"
+		},
+		{
+			"key": "PUBLIC_DOMAIN",
+			"value": "http://yourdomain",
+			"type": "default"
+		},
+		{
+			"key": "url",
+			"value": "https://longurl.com/test"
+		}
+	]
+}

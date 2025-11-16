@@ -16,7 +16,64 @@ type repository struct {
 	db *mysql.Client
 }
 
-// InsertUrlEncode implements port.Repository.
+func (r *repository) GetUrlEncodeByShortenId(ctx context.Context, shortenId string) (urlEncode model.UrlEncodeModel, err error) {
+	columns := []string{
+		"shorten_id",
+		"shorten_number",
+		"long_url",
+	}
+	sql := fmt.Sprintf(
+		"SELECT %s FROM %s WHERE shorten_id = ? LIMIT 1",
+		strings.Join(columns, ", "),
+		table_url_encode,
+	)
+	rows, err := r.db.GetDBTX(ctx).QueryContext(ctx, sql, shortenId)
+	if err != nil {
+		return urlEncode, err
+	}
+	defer rows.Close()
+	if rows.Next() {
+		if err := rows.Scan(
+			&urlEncode.ShortenId,
+			&urlEncode.ShortenNumber,
+			&urlEncode.LongUrl,
+		); err != nil {
+			return urlEncode, err
+		}
+		return urlEncode, nil
+	}
+	return urlEncode, err
+}
+
+func (r *repository) GetUrlEncodeByLongUrl(ctx context.Context, longUrl string) (urlEncode model.UrlEncodeModel, err error) {
+	columns := []string{
+		"shorten_id",
+		"shorten_number",
+		"long_url",
+	}
+	sql := fmt.Sprintf(
+		"SELECT %s FROM %s WHERE long_url = ? LIMIT 1",
+		strings.Join(columns, ", "),
+		table_url_encode,
+	)
+	rows, err := r.db.GetDBTX(ctx).QueryContext(ctx, sql, longUrl)
+	if err != nil {
+		return urlEncode, err
+	}
+	defer rows.Close()
+	if rows.Next() {
+		if err := rows.Scan(
+			&urlEncode.ShortenId,
+			&urlEncode.ShortenNumber,
+			&urlEncode.LongUrl,
+		); err != nil {
+			return urlEncode, err
+		}
+		return urlEncode, nil
+	}
+	return urlEncode, err
+}
+
 func (r *repository) InsertUrlEncode(ctx context.Context, urlEncode model.UrlEncodeModel) error {
 	columns := []string{
 		"shorten_id",
