@@ -1,0 +1,1 @@
+https://shortenurl.alwaysdata.net/swagger/index.html
