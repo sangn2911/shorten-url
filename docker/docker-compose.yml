@@ -12,6 +12,23 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-
+  shortlink:
+    image: shortlink:1.0
+    container_name: shortlink
+    environment:
+      SERVICE: shorten-url
+      HOST: shortlink
+      PORT: 8080
+      WRITE_TIMEOUT: 15s
+      READ_TIMEOUT: 15s
+      PUBLIC_DOMAIN: yourdomain
+      MIN_SHORTEN_IN_LENGTH: 1
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: shorten_url
+    ports:
+      - "8080:8080"
 volumes:
   mysql_data:
