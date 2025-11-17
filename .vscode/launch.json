@@ -11,7 +11,8 @@
             "mode": "auto",
             "program": "${workspaceFolder}/main.go",
             "cwd": "${workspaceFolder}",
-            "envFile": "${workspaceFolder}/env/.env"
+            "envFile": "${workspaceFolder}/env/.env",
+            "preLaunchTask": "swag-init"
         }
     ]
 }

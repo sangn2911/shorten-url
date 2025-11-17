@@ -19,6 +19,16 @@ func NewHandler(service port.Service) *handler {
 	}
 }
 
+// @Router /encode [post]
+// @Summary Encodes a url to a shorten url
+// @Description API to encodes a url to a shorten url
+// @Tags ShortLink
+// @Accept json
+// @Produce json
+// @Param request body dto.ConvertUrlRequest true "Request payload"
+// @Success 200 {object} dto.EncodeUrlResponse
+// @Failure 400 {object} httputils.Response
+// @Failure 500 {object} httputils.Response
 func (h *handler) Encode(w http.ResponseWriter, r *http.Request) {
 	logger := logger.WithContext(r.Context())
 	logger.Info("Handler.Encode")
@@ -43,6 +53,16 @@ func (h *handler) Encode(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// @Router /decode [post]
+// @Summary Decodes a shortened URL to its original URL
+// @Description API to decodes a shortened URL to its original URL
+// @Tags ShortLink
+// @Accept json
+// @Produce json
+// @Param request body dto.ConvertUrlRequest true "Request payload"
+// @Success 200 {object} dto.DecodeUrlResponse
+// @Failure 400 {object} httputils.Response
+// @Failure 500 {object} httputils.Response
 func (h *handler) Decode(w http.ResponseWriter, r *http.Request) {
 	logger := logger.WithContext(r.Context())
 	logger.Info("Handler.Decode")

@@ -9,6 +9,3 @@ CREATE TABLE url_encode (
     `original_url` VARCHAR(255) NOT NULL COLLATE utf8mb4_0900_as_cs,
     PRIMARY KEY (`shorten_id`)
 );
-
--- DROP TABLE url_encode;
-TRUNCATE TABLE url_encode;

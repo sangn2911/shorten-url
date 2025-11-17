@@ -8,7 +8,7 @@ import (
 
 type Response struct {
 	StatusCode int    `json:"-"`
-	Data       any    `json:"data,omitempty"`
+	Data       any    `json:"-"`
 	Message    string `json:"message"`
 }
 
@@ -45,9 +45,9 @@ func JSON(w http.ResponseWriter, r *http.Request, res Response) {
 	logger := logger.WithContext(r.Context())
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(res.StatusCode)
-	var data any = res
+	var response any = res
 	if res.Data != nil {
-		data = res.Data
+		response = res.Data
 	}
 	if len(res.Message) > 0 {
 		logger.Infof(
@@ -58,7 +58,7 @@ func JSON(w http.ResponseWriter, r *http.Request, res Response) {
 			res.Message,
 		)
 	}
-	if err := json.NewEncoder(w).Encode(data); err != nil {
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		logger.Error(err, "fail to send response")
 	}
 }

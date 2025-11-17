@@ -1,0 +1,88 @@
+basePath: /
+definitions:
+  dto.ConvertUrlRequest:
+    properties:
+      url:
+        type: string
+    type: object
+  dto.DecodeUrlResponse:
+    properties:
+      originalUrl:
+        type: string
+    type: object
+  dto.EncodeUrlResponse:
+    properties:
+      shortenUrl:
+        type: string
+    type: object
+  httputils.Response:
+    properties:
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: Shorten Url API
+  version: "1.0"
+paths:
+  /decode:
+    post:
+      consumes:
+      - application/json
+      description: API to decodes a shortened URL to its original URL
+      parameters:
+      - description: Request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ConvertUrlRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DecodeUrlResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputils.Response'
+      summary: Decodes a shortened URL to its original URL
+      tags:
+      - ShortLink
+  /encode:
+    post:
+      consumes:
+      - application/json
+      description: API to encodes a url to a shorten url
+      parameters:
+      - description: Request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ConvertUrlRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EncodeUrlResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputils.Response'
+      summary: Encodes a url to a shorten url
+      tags:
+      - ShortLink
+swagger: "2.0"

@@ -5,9 +5,13 @@ import (
 	"os"
 	"os/signal"
 	"shorten-url/app"
+	_ "shorten-url/docs"
 	"shorten-url/package/logger"
 )
 
+// @title		Shorten Url API
+// @version	1.0
+// @BasePath	/
 func main() {
 	runApplication()
 }

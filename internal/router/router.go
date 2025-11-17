@@ -7,10 +7,12 @@ import (
 	"shorten-url/package/middleware"
 
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func NewRouter(handler port.Handler) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
+	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 	router.Use(
 		middleware.LogMiddleware,
 		middleware.RecoverMiddleware,
