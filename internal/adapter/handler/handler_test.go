@@ -64,6 +64,17 @@ func Test_handler_Encode(t *testing.T) {
 					Return("", service.ErrUrlEmpty)
 			},
 		},
+		{
+			name:        "Test when service receives an invalid url",
+			url:         "",
+			wantCode:    400,
+			wantMessage: service.ErrUrlInvalid.Error(),
+			mockHandler: func(mockService *serviceMock.MockService) {
+				mockService.
+					On("Encode", mock.Anything, "").
+					Return("", service.ErrUrlInvalid)
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -157,6 +168,17 @@ func Test_handler_Decode(t *testing.T) {
 				mockService.
 					On("Decode", mock.Anything, shortenUrl).
 					Return("", service.ErrShortenUrlNotFound)
+			},
+		},
+		{
+			name:        "Test when service receives an url not having same public domain",
+			url:         shortenUrl,
+			wantCode:    400,
+			wantMessage: service.ErrUrlInvalid.Error(),
+			mockHandler: func(mockService *serviceMock.MockService) {
+				mockService.
+					On("Decode", mock.Anything, shortenUrl).
+					Return("", service.ErrUrlInvalid)
 			},
 		},
 	}

@@ -65,7 +65,7 @@ func Test_generateShortenIdByShortenNumber(t *testing.T) {
 
 type sqlMockHandler func(mock sqlmock.Sqlmock)
 
-func Test_handler_Encode(t *testing.T) {
+func Test_service_Encode(t *testing.T) {
 	const (
 		publicDomain       = "public_domain.com"
 		orginalUrl         = "https://orginal_url.com/info"
@@ -81,12 +81,14 @@ func Test_handler_Encode(t *testing.T) {
 	}
 	tests := []struct {
 		name           string
+		url            string
 		mockHandler    sqlMockHandler
 		wantShortenUrl string
 		wantErr        error
 	}{
 		{
 			name:           "Test encoding new url when database is empty",
+			url:            orginalUrl,
 			wantShortenUrl: fmt.Sprintf("http://%s/aa", publicDomain),
 			wantErr:        nil,
 			mockHandler: func(mock sqlmock.Sqlmock) {
@@ -122,6 +124,7 @@ func Test_handler_Encode(t *testing.T) {
 		},
 		{
 			name:           "Test encoding new url when database reach collision",
+			url:            orginalUrl,
 			wantShortenUrl: fmt.Sprintf("http://%s/aab", publicDomain),
 			wantErr:        nil,
 			mockHandler: func(mock sqlmock.Sqlmock) {
@@ -159,6 +162,7 @@ func Test_handler_Encode(t *testing.T) {
 		},
 		{
 			name:           "Test encoding url encoded",
+			url:            orginalUrl,
 			wantShortenUrl: fmt.Sprintf("http://%s/99", publicDomain),
 			wantErr:        nil,
 			mockHandler: func(mock sqlmock.Sqlmock) {
@@ -177,10 +181,10 @@ func Test_handler_Encode(t *testing.T) {
 		},
 		{
 			name:           "Test commit error",
+			url:            orginalUrl,
 			wantShortenUrl: fmt.Sprintf("http://%s/aa", publicDomain),
 			wantErr:        txErr,
 			mockHandler: func(mock sqlmock.Sqlmock) {
-
 				table_url_encode := "url_encode"
 				mock.
 					ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(
@@ -211,6 +215,14 @@ func Test_handler_Encode(t *testing.T) {
 				mock.ExpectCommit().WillReturnError(txErr)
 			},
 		},
+		{
+			name:           "Test url is invalid",
+			url:            "http",
+			wantShortenUrl: "",
+			wantErr:        ErrUrlInvalid,
+			mockHandler: func(mock sqlmock.Sqlmock) {
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -222,7 +234,7 @@ func Test_handler_Encode(t *testing.T) {
 			tt.mockHandler(mock)
 			repository := repository.NewRepository(&mysql.Client{DB: db})
 			service := NewService(repository, publicDomain, minShortenIdLength)
-			shortenUrl, err := service.Encode(context.Background(), orginalUrl)
+			shortenUrl, err := service.Encode(context.Background(), tt.url)
 			if !errors.Is(err, tt.wantErr) {
 				t.Errorf("Encode() return err %v, want %v", err, tt.wantErr)
 			}
@@ -233,7 +245,7 @@ func Test_handler_Encode(t *testing.T) {
 	}
 }
 
-func Test_handler_Decode(t *testing.T) {
+func Test_service_Decode(t *testing.T) {
 	columns := []string{
 		"shorten_id",
 		"shorten_number",
@@ -253,7 +265,7 @@ func Test_handler_Decode(t *testing.T) {
 		wantErr     error
 	}{
 		{
-			name:       "Decode registered shorten url",
+			name:       "Test decoding registered shorten url",
 			shortenUrl: fmt.Sprintf("http://%s/GeAi9K", publicDomain),
 			wantUrl:    orginalUrl,
 			wantErr:    nil,
@@ -269,7 +281,7 @@ func Test_handler_Decode(t *testing.T) {
 			},
 		},
 		{
-			name:       "Decode unregistered shorten url",
+			name:       "Test decoding unregistered shorten url",
 			shortenUrl: fmt.Sprintf("http://%s/GeAi9K", publicDomain),
 			wantUrl:    "",
 			wantErr:    ErrShortenUrlNotFound,
@@ -282,6 +294,22 @@ func Test_handler_Decode(t *testing.T) {
 					))).
 					WithArgs("GeAi9K").
 					WillReturnRows(&sqlmock.Rows{})
+			},
+		},
+		{
+			name:       "Test decoding unregistered invalid url",
+			shortenUrl: "ws://a.com/GeAi9K",
+			wantUrl:    "",
+			wantErr:    ErrUrlInvalid,
+			mockHandler: func(mock sqlmock.Sqlmock) {
+			},
+		},
+		{
+			name:       "Test decoding unregistered url not having same host",
+			shortenUrl: "http://a.com/GeAi9K",
+			wantUrl:    "",
+			wantErr:    ErrUrlInvalid,
+			mockHandler: func(mock sqlmock.Sqlmock) {
 			},
 		},
 	}

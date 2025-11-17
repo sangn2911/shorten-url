@@ -15,6 +15,7 @@ import (
 var (
 	ErrShortenUrlNotFound = errors.New("shorten url is not found")
 	ErrUrlEmpty           = errors.New("url is empty")
+	ErrUrlInvalid         = errors.New("url is invalid")
 )
 
 type service struct {
@@ -47,6 +48,9 @@ func (s *service) Encode(ctx context.Context, url string) (shortenUrl string, er
 	logger.Info("Service.Encode")
 	if len(url) == 0 {
 		return shortenUrl, ErrUrlEmpty
+	}
+	if !isValidURLWithHost(url, "") {
+		return shortenUrl, ErrUrlInvalid
 	}
 	urlEncode, err := s.repository.GetUrlEncodeByOriginalUrl(ctx, url)
 	if err != nil {
@@ -104,7 +108,10 @@ func (s *service) Decode(ctx context.Context, url string) (originalUrl string, e
 	logger := logger.WithContext(ctx)
 	logger.Info("Service.Decode")
 	if len(url) == 0 {
-		return "", ErrUrlEmpty
+		return originalUrl, ErrUrlEmpty
+	}
+	if !isValidURLWithHost(url, s.publicDomain) {
+		return originalUrl, ErrUrlInvalid
 	}
 	parsedUrl, err := netUrl.Parse(url)
 	if err != nil {
@@ -132,4 +139,18 @@ func generateShortenIdByShortenNumber(shortenNumber int, length int) string {
 		shortenNumber /= baseNumber
 	}
 	return builder.String()
+}
+
+func isValidURLWithHost(s string, host string) bool {
+	u, err := netUrl.ParseRequestURI(s)
+	if err != nil {
+		return false
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return false
+	}
+	if host != "" && u.Host != host {
+		return false
+	}
+	return true
 }

@@ -40,7 +40,7 @@ func (h *handler) Encode(w http.ResponseWriter, r *http.Request) {
 	shortenUrl, err := h.service.Encode(r.Context(), request.Url)
 	if err != nil {
 		switch err {
-		case service.ErrUrlEmpty:
+		case service.ErrUrlEmpty, service.ErrUrlInvalid:
 			httputils.JSON400(w, r, err.Error())
 			return
 		default:
@@ -62,6 +62,7 @@ func (h *handler) Encode(w http.ResponseWriter, r *http.Request) {
 // @Param request body dto.ConvertUrlRequest true "Request payload"
 // @Success 200 {object} dto.DecodeUrlResponse
 // @Failure 400 {object} httputils.Response
+// @Failure 404 {object} httputils.Response
 // @Failure 500 {object} httputils.Response
 func (h *handler) Decode(w http.ResponseWriter, r *http.Request) {
 	logger := logger.WithContext(r.Context())
@@ -76,7 +77,7 @@ func (h *handler) Decode(w http.ResponseWriter, r *http.Request) {
 		switch err {
 		case service.ErrShortenUrlNotFound:
 			httputils.JSON404(w, r, err.Error())
-		case service.ErrUrlEmpty:
+		case service.ErrUrlEmpty, service.ErrUrlInvalid:
 			httputils.JSON400(w, r, err.Error())
 			return
 		default:
