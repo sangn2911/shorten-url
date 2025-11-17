@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	netUrl "net/url"
@@ -9,6 +10,11 @@ import (
 	"shorten-url/internal/port"
 	"shorten-url/package/logger"
 	"strings"
+)
+
+var (
+	ErrShortenUrlNotFound = errors.New("shorten url is not found")
+	ErrUrlEmpty           = errors.New("url is empty")
 )
 
 type service struct {
@@ -39,11 +45,14 @@ func handleEndOfTransaction(ctx context.Context, repository port.Repository, err
 func (s *service) Encode(ctx context.Context, url string) (shortenUrl string, err error) {
 	logger := logger.WithContext(ctx)
 	logger.Info("Service.Encode")
-	urlEncode, err := s.repository.GetUrlEncodeByLongUrl(ctx, url)
+	if len(url) == 0 {
+		return shortenUrl, ErrUrlEmpty
+	}
+	urlEncode, err := s.repository.GetUrlEncodeByOriginalUrl(ctx, url)
 	if err != nil {
 		return shortenUrl, err
 	}
-	logger.Info("Service.Encode GetUrlEncodeByLongUrl Successfully")
+	logger.Info("Service.Encode GetUrlEncodeByOriginalUrl Successfully")
 	if len(urlEncode.ShortenId) > 0 {
 		return fmt.Sprintf(
 			"http://%s/%s",
@@ -78,7 +87,7 @@ func (s *service) Encode(ctx context.Context, url string) (shortenUrl string, er
 			nextShortenNumber,
 			currentShortenIdLength,
 		),
-		LongUrl: url,
+		OriginalUrl: url,
 	}
 	if err = s.repository.InsertUrlEncode(ctx, newUrlEncode); err != nil {
 		return shortenUrl, err
@@ -91,18 +100,24 @@ func (s *service) Encode(ctx context.Context, url string) (shortenUrl string, er
 	), nil
 }
 
-func (s *service) Decode(ctx context.Context, url string) (longUrl string, err error) {
+func (s *service) Decode(ctx context.Context, url string) (originalUrl string, err error) {
 	logger := logger.WithContext(ctx)
 	logger.Info("Service.Decode")
+	if len(url) == 0 {
+		return "", ErrUrlEmpty
+	}
 	parsedUrl, err := netUrl.Parse(url)
 	if err != nil {
-		return longUrl, err
+		return originalUrl, err
 	}
 	urlEncode, err := s.repository.GetUrlEncodeByShortenId(ctx, parsedUrl.Path[1:])
 	if err != nil {
-		return longUrl, err
+		return originalUrl, err
 	}
-	return urlEncode.LongUrl, nil
+	if len(urlEncode.OriginalUrl) == 0 {
+		return originalUrl, ErrShortenUrlNotFound
+	}
+	return urlEncode.OriginalUrl, nil
 }
 
 func generateShortenIdByShortenNumber(shortenNumber int, length int) string {

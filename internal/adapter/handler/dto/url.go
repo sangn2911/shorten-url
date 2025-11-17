@@ -1,6 +1,8 @@
 package dto
 
-const SHORTEN_URL_MIN_LENGTH = 6
+import "errors"
+
+var ErrUrlEmpty = errors.New("url is empty")
 
 type ConvertUrlRequest struct {
 	Url string `json:"url"`

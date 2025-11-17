@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"shorten-url/internal/model"
+	"shorten-url/package/database"
 	"shorten-url/package/database/mysql"
 	"shorten-url/package/logger"
-	"slices"
-	"strings"
 )
 
 const table_url_encode = "url_encode"
@@ -24,7 +23,7 @@ func (r *repository) GetUrlEncodeByShortenId(ctx context.Context, shortenId stri
 	}
 	sql := fmt.Sprintf(
 		"SELECT %s FROM %s WHERE shorten_id = ? LIMIT 1",
-		strings.Join(columns, ", "),
+		database.JoinColumns(columns),
 		table_url_encode,
 	)
 	rows, err := r.db.GetDBTX(ctx).QueryContext(ctx, sql, shortenId)
@@ -36,7 +35,7 @@ func (r *repository) GetUrlEncodeByShortenId(ctx context.Context, shortenId stri
 		if err := rows.Scan(
 			&urlEncode.ShortenId,
 			&urlEncode.ShortenNumber,
-			&urlEncode.LongUrl,
+			&urlEncode.OriginalUrl,
 		); err != nil {
 			return urlEncode, err
 		}
@@ -45,7 +44,7 @@ func (r *repository) GetUrlEncodeByShortenId(ctx context.Context, shortenId stri
 	return urlEncode, err
 }
 
-func (r *repository) GetUrlEncodeByLongUrl(ctx context.Context, longUrl string) (urlEncode model.UrlEncodeModel, err error) {
+func (r *repository) GetUrlEncodeByOriginalUrl(ctx context.Context, originalUrl string) (urlEncode model.UrlEncodeModel, err error) {
 	columns := []string{
 		"shorten_id",
 		"shorten_number",
@@ -53,10 +52,10 @@ func (r *repository) GetUrlEncodeByLongUrl(ctx context.Context, longUrl string) 
 	}
 	sql := fmt.Sprintf(
 		"SELECT %s FROM %s WHERE long_url = ? LIMIT 1",
-		strings.Join(columns, ", "),
+		database.JoinColumns(columns),
 		table_url_encode,
 	)
-	rows, err := r.db.GetDBTX(ctx).QueryContext(ctx, sql, longUrl)
+	rows, err := r.db.GetDBTX(ctx).QueryContext(ctx, sql, originalUrl)
 	if err != nil {
 		return urlEncode, err
 	}
@@ -65,7 +64,7 @@ func (r *repository) GetUrlEncodeByLongUrl(ctx context.Context, longUrl string) 
 		if err := rows.Scan(
 			&urlEncode.ShortenId,
 			&urlEncode.ShortenNumber,
-			&urlEncode.LongUrl,
+			&urlEncode.OriginalUrl,
 		); err != nil {
 			return urlEncode, err
 		}
@@ -83,19 +82,48 @@ func (r *repository) InsertUrlEncode(ctx context.Context, urlEncode model.UrlEnc
 	sql := fmt.Sprintf(
 		"INSERT INTO %s (%s) VALUES (%s)",
 		table_url_encode,
-		joinColumns(columns),
-		getValueHolder(len(columns)),
+		database.JoinColumns(columns),
+		database.GetValueHolder(len(columns)),
 	)
 	if _, err := r.db.GetDBTX(ctx).ExecContext(
 		ctx,
 		sql,
 		urlEncode.ShortenId,
 		urlEncode.ShortenNumber,
-		urlEncode.LongUrl,
+		urlEncode.OriginalUrl,
 	); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (r *repository) GetLatestUrlEncode(ctx context.Context) (urlEncode model.UrlEncodeModel, err error) {
+	columns := []string{
+		"shorten_id",
+		"shorten_number",
+		"long_url",
+	}
+	sql := fmt.Sprintf(
+		"SELECT %s FROM %s ORDER BY shorten_number DESC LIMIT 1",
+		database.JoinColumns(columns),
+		table_url_encode,
+	)
+	rows, err := r.db.GetDBTX(ctx).QueryContext(ctx, sql)
+	if err != nil {
+		return urlEncode, err
+	}
+	defer rows.Close()
+	if rows.Next() {
+		if err := rows.Scan(
+			&urlEncode.ShortenId,
+			&urlEncode.ShortenNumber,
+			&urlEncode.OriginalUrl,
+		); err != nil {
+			return urlEncode, err
+		}
+		return urlEncode, nil
+	}
+	return urlEncode, err
 }
 
 func (r *repository) Begin(ctx context.Context) (context.Context, error) {
@@ -113,45 +141,8 @@ func (r *repository) RollBack(ctx context.Context) error {
 	return nil
 }
 
-func (r *repository) GetLatestUrlEncode(ctx context.Context) (urlEncode model.UrlEncodeModel, err error) {
-	columns := []string{
-		"shorten_id",
-		"shorten_number",
-		"long_url",
-	}
-	sql := fmt.Sprintf(
-		"SELECT %s FROM %s ORDER BY shorten_number DESC LIMIT 1",
-		strings.Join(columns, ", "),
-		table_url_encode,
-	)
-	rows, err := r.db.GetDBTX(ctx).QueryContext(ctx, sql)
-	if err != nil {
-		return urlEncode, err
-	}
-	defer rows.Close()
-	if rows.Next() {
-		if err := rows.Scan(
-			&urlEncode.ShortenId,
-			&urlEncode.ShortenNumber,
-			&urlEncode.LongUrl,
-		); err != nil {
-			return urlEncode, err
-		}
-		return urlEncode, nil
-	}
-	return urlEncode, err
-}
-
 func NewRepository(db *mysql.Client) *repository {
 	return &repository{
 		db: db,
 	}
-}
-
-func joinColumns(columns []string) string {
-	return strings.Join(columns, ", ")
-}
-
-func getValueHolder(count int) string {
-	return strings.Join(slices.Repeat([]string{"?"}, count), ", ")
 }
