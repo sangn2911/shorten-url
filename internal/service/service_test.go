@@ -77,7 +77,7 @@ func Test_handler_Encode(t *testing.T) {
 	columns := []string{
 		"shorten_id",
 		"shorten_number",
-		"long_url",
+		"original_url",
 	}
 	tests := []struct {
 		name           string
@@ -93,7 +93,7 @@ func Test_handler_Encode(t *testing.T) {
 
 				mock.
 					ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(
-						"SELECT %s FROM %s WHERE long_url = ? LIMIT 1",
+						"SELECT %s FROM %s WHERE original_url = ? LIMIT 1",
 						database.JoinColumns(columns),
 						table_url_encode,
 					))).
@@ -130,7 +130,7 @@ func Test_handler_Encode(t *testing.T) {
 				table_url_encode := "url_encode"
 				mock.
 					ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(
-						"SELECT %s FROM %s WHERE long_url = ? LIMIT 1",
+						"SELECT %s FROM %s WHERE original_url = ? LIMIT 1",
 						database.JoinColumns(columns),
 						table_url_encode,
 					))).
@@ -167,7 +167,7 @@ func Test_handler_Encode(t *testing.T) {
 				table_url_encode := "url_encode"
 				mock.
 					ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(
-						"SELECT %s FROM %s WHERE long_url = ? LIMIT 1",
+						"SELECT %s FROM %s WHERE original_url = ? LIMIT 1",
 						database.JoinColumns(columns),
 						table_url_encode,
 					))).
@@ -184,7 +184,7 @@ func Test_handler_Encode(t *testing.T) {
 				table_url_encode := "url_encode"
 				mock.
 					ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(
-						"SELECT %s FROM %s WHERE long_url = ? LIMIT 1",
+						"SELECT %s FROM %s WHERE original_url = ? LIMIT 1",
 						database.JoinColumns(columns),
 						table_url_encode,
 					))).
@@ -237,7 +237,7 @@ func Test_handler_Decode(t *testing.T) {
 	columns := []string{
 		"shorten_id",
 		"shorten_number",
-		"long_url",
+		"original_url",
 	}
 	const (
 		publicDomain       = "public_domain.com"

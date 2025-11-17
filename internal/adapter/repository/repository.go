@@ -19,7 +19,7 @@ func (r *repository) GetUrlEncodeByShortenId(ctx context.Context, shortenId stri
 	columns := []string{
 		"shorten_id",
 		"shorten_number",
-		"long_url",
+		"original_url",
 	}
 	sql := fmt.Sprintf(
 		"SELECT %s FROM %s WHERE shorten_id = ? LIMIT 1",
@@ -48,10 +48,10 @@ func (r *repository) GetUrlEncodeByOriginalUrl(ctx context.Context, originalUrl 
 	columns := []string{
 		"shorten_id",
 		"shorten_number",
-		"long_url",
+		"original_url",
 	}
 	sql := fmt.Sprintf(
-		"SELECT %s FROM %s WHERE long_url = ? LIMIT 1",
+		"SELECT %s FROM %s WHERE original_url = ? LIMIT 1",
 		database.JoinColumns(columns),
 		table_url_encode,
 	)
@@ -77,7 +77,7 @@ func (r *repository) InsertUrlEncode(ctx context.Context, urlEncode model.UrlEnc
 	columns := []string{
 		"shorten_id",
 		"shorten_number",
-		"long_url",
+		"original_url",
 	}
 	sql := fmt.Sprintf(
 		"INSERT INTO %s (%s) VALUES (%s)",
@@ -101,7 +101,7 @@ func (r *repository) GetLatestUrlEncode(ctx context.Context) (urlEncode model.Ur
 	columns := []string{
 		"shorten_id",
 		"shorten_number",
-		"long_url",
+		"original_url",
 	}
 	sql := fmt.Sprintf(
 		"SELECT %s FROM %s ORDER BY shorten_number DESC LIMIT 1",
