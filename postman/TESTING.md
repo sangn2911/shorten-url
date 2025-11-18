@@ -1,9 +1,9 @@
 # API Testing with Postman
 
-## 1. Prerequisites
+## Prerequisites
 - Postman version 10.8.0
 
-## 2. Prepare
+## Run tests
 1. Make sure table url_encode is empty (as it will conflict with the testcases)
 2. Import [Collections](./ShortenUrl.postman_collection.json)
 3. Click to collection "ShortenUrl"
