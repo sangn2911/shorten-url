@@ -62,8 +62,30 @@ Environment variables are defined in [.env.sample](./env/.env.sample):
     go run .
     ```
 
----
-
-### Run Tests
+#### Run Tests
 ```bash
 go test -v -cover ./internal/adapter/handler ./internal/service
+```
+
+---
+
+### Postman
+- [Go to Postman guide](./postman/GUIDE.md)
+
+---
+
+## Deploy on alwaysdata
+- [Go to deployment guide](./alwaysdata/DEPLOYMENT.md)
+
+---
+
+## Build Docker Image for Other Platforms
+- Start at the project root.  
+- Build the binary `shortlink` using:  
+    ```bash
+    ./docker/build_image.sh
+    ```
+- Verify the Docker image:  
+    ```bash
+    docker image ls | grep "shortlink"
+    ```
