@@ -7,14 +7,14 @@ import (
 
 type CORSConfig struct {
 	AllowOrigins []string `env:"ALLOW_ORIGIN" envDefault:"*"`
-	AllowMethods []string `env:"ALLOW_METHODS" envDefault:"GET, POST"`
-	AllowHeaders []string `env:"ALLOW_METHODS" envDefault:"*"`
+	AllowMethods []string `env:"ALLOW_METHODS" envDefault:"GET,POST"`
+	AllowHeaders []string `env:"ALLOW_HEADERS" envDefault:"*"`
 }
 
 func GetCORSMiddleWare(cfg CORSConfig) mux.MiddlewareFunc {
 	return handlers.CORS(
 		handlers.AllowedOrigins(cfg.AllowOrigins),
-		handlers.AllowedOrigins(cfg.AllowMethods),
-		handlers.AllowedOrigins(cfg.AllowHeaders),
+		handlers.AllowedMethods(cfg.AllowMethods),
+		handlers.AllowedHeaders(cfg.AllowHeaders),
 	)
 }
