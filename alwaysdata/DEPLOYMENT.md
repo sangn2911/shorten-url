@@ -1,55 +1,77 @@
-# Deploys on alwaysdata
+# Deploy on alwaysdata
 
 ## Prerequisites
-- Account for [alwaysdata](https://admin.alwaysdata.com/)
-- Go binary for application [Shortlink](./shortlink) in github
+- An account on [alwaysdata](https://admin.alwaysdata.com/)  
+- Go binary for the application ShortLink from GitHub  
 
 ## Deployment
+
 ### MySQL
-- Go to [MySQL alwaysdata](https://admin.alwaysdata.com/database/?type=mysql)  
-    - ![MySQL](./images/mysql-alwaysdata.png)
-- In "DATABASES" tab, add a new database named "shortenurl_database" (the name will be used in application configuration)  
-- In "USERS" tab, modify the password of the existing user (in this case, we modify user "441172")
-- Go to [phpMyAdmin](https://phpmyadmin.alwaysdata.com/), login with user "441172"
-- Select shortenurl_database, and go to SQL tab
-    - ![phpMyAdmin](./images/phpMyAdmin-alwaysdata.png)
-- Copy and execute script [create_table.sql](./create_table.sql)
-    - Notes: Be careful about the COLLATE may not be supported, we can create new table by using UI, and check the list of collations to choose the suitable one
-        - ![collations](./images/collation-list.png)
-- Verify setup by query "SELECT * FROM url_encode;"
+1. Go to [MySQL on alwaysdata](https://admin.alwaysdata.com/database/?type=mysql)  
+    - ![MySQL](./images/mysql-alwaysdata.png)  
+2. In the **DATABASES** tab, add a new database named `shortenurl_database` (this name will be used in the application configuration).  
+3. In the **USERS** tab, modify the password of the existing user (for example, user `441172`).  
+4. Go to [phpMyAdmin](https://phpmyadmin.alwaysdata.com/), and log in with user `441172`.  
+5. Select `shortenurl_database`, go to the **SQL** tab:  
+    - ![phpMyAdmin](./images/phpMyAdmin-alwaysdata.png)  
+6. Copy and execute the script [create_table.sql](./create_table.sql).  
+    - **Note:** Some collations may not be supported. You can create a new table using the UI and select a suitable collation.  
+        - ![Collations](./images/collation-list.png)  
+7. Verify the setup with the query:  
+    ```sql
+    SELECT * FROM url_encode;
+    ```
+
+---
 
 ### Application
-*Note: For free plan of alwaysdata, docker is not supported. Therefore, to deploy a Go application, we need to build a binary file, and move to alwaysdata storage.  
-#### 1. Build binary
-- Start at root of projects
-- Execute ./alwaysdata/build_binary.sh to build binary file named "shortlink"
-- Push file binary to github branch "deploy_alwaysdata" (this will be downloaded into alwaysdata storage)
-- On github websites, find binary file "shortlink" in branch "deploy_alwaysdata"
-- Select the binary file and copy the link address (**binary url**) from the "Raw" button
-    - ![raw-button](./images/raw-button.png)
+*Note: For the free plan on alwaysdata, Docker is not supported. To deploy a Go application, we need to build a binary file and upload it to alwaysdata storage.*
 
-#### 2. Download binary into alwaysdata storage
-*Note: "shortenurl" is the name of account to use service of alwaysdata. Therefore, the information (contains "shortenurl") here can be different for other accounts. 
-- Go to tab [SSH alwaysdata](https://admin.alwaysdata.com/ssh/)
-    - ![SSH](./images/ssh-alwaysdata.png)
-- Modify the password of the existing user (in this case, we modify user "shortenurl")
-- Go to [SSH websites](https://ssh-shortenurl.alwaysdata.net/), and login with the user above to enter the terminal
-- Execute command "wget **binary url**" (The link get from **Build binary**) to download binary "shortlink". Use command "ls" to verify this step
-- Execute command "chmod +x ./shortlink" to allow execute binary file
-    - ![Terminal](./images/ssh-terminal.png)
+#### 1. Build Binary
+- Start at the root of the project.  
+- Execute:  
+    ```bash
+    ./alwaysdata/build_binary.sh
+    ```  
+    This builds a binary file named `shortlink`.  
+- Push the binary file to the GitHub branch `deploy_alwaysdata` (this will be downloaded into alwaysdata storage).  
+- On GitHub, locate the binary file `shortlink` in branch `deploy_alwaysdata`.  
+- Select the file and copy the link address (**binary URL**) from the **Raw** button.  
+    - ![Raw Button](./images/raw-button.png)  
 
-#### 3. Start Go application in alwaysdata
-*Note: For free plan of alwaysdata, we can only use the address "shortenurl.alwaysdata.net" (shortenurl is the name of account)
-- Go to [Sites alwaysdata](https://admin.alwaysdata.com/site/), and choose "Add a site"
-    - ![Sites](./images/sites-alwaysdata.png)
-- Fill the information:
-    - Addresses: we use "shortenurl.alwaysdata.net" only
-    - Configuration:
-        - Type: User program
-        - Command: "~/shortlink" (as binary "shortlink" in home directory)
-        - Working directory: empty
-        - Environment: fill and modify the information from [alwaysdata.env.sample](./alwaysdata.env.sample) (*Note: for PORT variable, we use the port in the description below Command input box)
-    - ![sites-config](./images/sites-config.png)
-- Submit
-- Verify application working properly at "https://shortenurl.alwaysdata.net/swagger/index.html"
-    - ![Swagger](./images/swagger.png)
+#### 2. Download Binary into alwaysdata Storage
+*Note: The account name (here `shortenurl`) may vary for different users.*  
+- Go to [SSH on alwaysdata](https://admin.alwaysdata.com/ssh/)  
+    - ![SSH](./images/ssh-alwaysdata.png)  
+- Modify the password of the existing user (e.g., `shortenurl`).  
+- Access the terminal via [SSH websites](https://ssh-shortenurl.alwaysdata.net/) using the credentials above.  
+- Execute:  
+    ```bash
+    wget <binary-url>
+    ```  
+    Replace `<binary-url>` with the link copied in the previous step. Use `ls` to verify the binary is downloaded.  
+- Make the binary executable:  
+    ```bash
+    chmod +x ./shortlink
+    ```  
+    - ![Terminal](./images/ssh-terminal.png)  
+
+#### 3. Start Go Application on alwaysdata
+*Note: For the free plan, the site address must be `shortenurl.alwaysdata.net` (the account name).*  
+- Go to [Sites on alwaysdata](https://admin.alwaysdata.com/site/) and click **Add a site**.  
+    - ![Sites](./images/sites-alwaysdata.png)  
+- Fill in the information:  
+    - **Addresses:** `shortenurl.alwaysdata.net`  
+    - **Configuration:**  
+        - Type: User program  
+        - Command: `~/shortlink` (binary in home directory)  
+        - Working directory: leave empty  
+        - Environment: fill using [alwaysdata.env.sample](./alwaysdata.env.sample)  
+          - *Note: For the `PORT` variable, use the port specified below the Command input box.*  
+    - ![Sites Config](./images/sites-config.png)  
+- Submit the configuration.  
+- Verify the application is running properly at:  
+    ```
+    https://shortenurl.alwaysdata.net/swagger/index.html
+    ```  
+    - ![Swagger](./images/swagger.png)  
