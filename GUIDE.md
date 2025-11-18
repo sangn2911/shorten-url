@@ -46,9 +46,6 @@ go test -v -cover ./internal/adapter/handler ./internal/service
 ### Postman
 [Go to postman guide](./postman/GUIDE.md)
 
-## Deploy on alwaysdata
-[Go to the guide](./alwaysdata/DEPLOYMENT.md)
-
 ## Build docker image for other platforms
 - Start at root of projects
 - Execute command "./docker/build_image.sh" to build binary file named "shortlink"
